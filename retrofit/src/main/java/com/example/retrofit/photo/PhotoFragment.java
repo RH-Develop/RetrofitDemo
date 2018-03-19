@@ -4,11 +4,15 @@ import android.os.IInterface;
 import android.support.v7.widget.DividerItemDecoration;
 import android.view.View;
 import android.widget.Toast;
+
 import com.example.retrofit.adapter.PhotoAdapter;
 import com.example.retrofit.model.PhotoArticleBean;
 import com.example.retrofit.base.BaseListFragment;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import io.reactivex.disposables.Disposable;
 
 
 /**
@@ -18,7 +22,6 @@ import java.util.List;
 public class PhotoFragment extends BaseListFragment<IPhotoArticle.Presenter> implements IPhotoArticle.View {
     private static final String TAG = "PhotoFragment";
     public static PhotoFragment photoFragment;
-
     public static PhotoFragment getInstance() {
         if (photoFragment == null) {
             photoFragment = new PhotoFragment();
@@ -41,10 +44,10 @@ public class PhotoFragment extends BaseListFragment<IPhotoArticle.Presenter> imp
     @Override
     protected void initView(View view) {
         super.initView(view);
-        photoAdapter = new PhotoAdapter(dataList , this);
+        photoAdapter = new PhotoAdapter(dataList, this);
         recyclerView.setAdapter(photoAdapter);
         //添加Android自带的分割线
-        recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(),DividerItemDecoration.VERTICAL));
+        recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL));
     }
 
     @Override
@@ -56,7 +59,7 @@ public class PhotoFragment extends BaseListFragment<IPhotoArticle.Presenter> imp
     public void onUpdateUI(List<PhotoArticleBean.Data> list) {
         //dataList.clear();
         //dataList.addAll(list);
-        dataList.addAll(0,list);
+        dataList.addAll(0, list);
         photoAdapter.notifyDataSetChanged();
     }
 
@@ -68,8 +71,7 @@ public class PhotoFragment extends BaseListFragment<IPhotoArticle.Presenter> imp
 
     @Override
     public void responsInfo(String s) {
-        Toast.makeText(getActivity(), s, Toast.LENGTH_LONG).show();
-        loadingFinish();
+        Toast.makeText(getActivity(), s, Toast.LENGTH_SHORT).show();
     }
 
 
