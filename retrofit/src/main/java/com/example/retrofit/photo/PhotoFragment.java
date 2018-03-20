@@ -1,7 +1,9 @@
 package com.example.retrofit.photo;
 
-import android.os.IInterface;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.DividerItemDecoration;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -12,16 +14,19 @@ import com.example.retrofit.base.BaseListFragment;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.reactivex.disposables.Disposable;
+import io.reactivex.disposables.CompositeDisposable;
 
 
 /**
  * @author RH
  * @date 2018/3/5
  */
-public class PhotoFragment extends BaseListFragment<IPhotoArticle.Presenter> implements IPhotoArticle.View {
+public class PhotoFragment extends BaseListFragment<PhotoPresenter> implements IPhotoArticle.View {
     private static final String TAG = "PhotoFragment";
     public static PhotoFragment photoFragment;
+
+    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
+
     public static PhotoFragment getInstance() {
         if (photoFragment == null) {
             photoFragment = new PhotoFragment();
@@ -32,14 +37,12 @@ public class PhotoFragment extends BaseListFragment<IPhotoArticle.Presenter> imp
     private PhotoAdapter photoAdapter;
     private List<PhotoArticleBean.Data> dataList = new ArrayList<>();
 
-    @Override
-    public void setPresenter(IPhotoArticle.Presenter presenter) {
-        //将IPhotoArticle.View 传给对应的Presenter
-        if (presenter == null) {
-            this.presenter = new PhotoPresenter(this);
-        }
-    }
 
+    @Override
+    protected void setPresenter() {
+        presenter = new PhotoPresenter(compositeDisposable);
+        presenter.attachView(this);
+    }
 
     @Override
     protected void initView(View view) {
@@ -80,5 +83,12 @@ public class PhotoFragment extends BaseListFragment<IPhotoArticle.Presenter> imp
         presenter.loadData();
     }
 
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        //CompositeDisposable的clear()方法和dispose()方法类似，clear()可以多次被调用来丢弃容器中所有的Disposable，但dispose()被调用一次后就会失效。
+        compositeDisposable.clear();
+    }
 
 }

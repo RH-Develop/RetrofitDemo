@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.example.retrofit.MyApplication;
+import com.example.retrofit.base.BasePresenter;
 import com.example.retrofit.network.RetrofitFactory;
 import com.example.retrofit.network.api.RetrofitService;
 import com.example.retrofit.model.PhotoArticleBean;
@@ -15,6 +16,7 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
@@ -28,13 +30,13 @@ import retrofit2.Response;
  * @author RH
  * @date 2018/3/5
  */
-public class PhotoPresenter implements IPhotoArticle.Presenter {
+public class PhotoPresenter extends BasePresenter<IPhotoArticle.View> implements IPhotoArticle.Presenter {
     private static final String TAG = "PhotoPresenter";
     private final String RETRY = "retry";
-    private IPhotoArticle.View view;
+    private CompositeDisposable compositeDisposable;
 
-    public PhotoPresenter(IPhotoArticle.View view) {
-        this.view = view;
+    public PhotoPresenter(CompositeDisposable disposables) {
+        compositeDisposable = disposables;
     }
 
     @Override
@@ -53,15 +55,15 @@ public class PhotoPresenter implements IPhotoArticle.Presenter {
             public void onResponse(@NonNull Call<PhotoArticleBean> call, @NonNull Response<PhotoArticleBean> response) {
                 PhotoArticleBean body = response.body();
                 if (body != null && !RETRY.equals(body.getMessage()) && body.getData().isHas_more()) {
-                    view.onUpdateUI(body.getData().getDataList());
+                    getview().onUpdateUI(body.getData().getDataList());
                 }
                 if (!NetWorkUtil.isNetworkConnected(MyApplication.getContext())) {
-                    view.responsInfo("请检查当前网路！");
+                    getview().responsInfo("请检查当前网路！");
                 } else {
                     if (body != null && !RETRY.equals(body.getMessage()) && body.getData().isHas_more()) {
-                        view.responsInfo(body.getData().getTip());
+                        getview().responsInfo(body.getData().getTip());
                     } else {
-                        view.responsInfo("暂无最新数据");
+                        getview().responsInfo("暂无最新数据");
                     }
                 }
 
@@ -69,7 +71,7 @@ public class PhotoPresenter implements IPhotoArticle.Presenter {
 
             @Override
             public void onFailure(Call<PhotoArticleBean> call, Throwable t) {
-                view.responsInfo("获取数据失败");
+                getview().responsInfo("获取数据失败");
             }
         });
     }
@@ -89,13 +91,13 @@ public class PhotoPresenter implements IPhotoArticle.Presenter {
                     public boolean test(PhotoArticleBean photoArticleBean) throws Exception {
                         if (photoArticleBean.getData().isHas_more()) {
                             if (NetWorkUtil.isNetworkConnected(MyApplication.getContext())) {
-                                view.responsInfo(photoArticleBean.getData().getTip());
+                                getview().responsInfo(photoArticleBean.getData().getTip());
                             } else {
-                                view.responsInfo("请检查当前网路！");
+                                getview().responsInfo("请检查当前网路！");
                             }
                             return true;
                         } else {
-                            view.responsInfo("暂无最新数据");
+                            getview().responsInfo("暂无最新数据");
                             return false;
                         }
                     }
@@ -113,27 +115,26 @@ public class PhotoPresenter implements IPhotoArticle.Presenter {
                 .subscribe(new Observer<List<PhotoArticleBean.Data>>() {
                     @Override
                     public void onSubscribe(Disposable d) {
-                        //判断是否解除绑定
-                        Log.e(TAG, "onSubscribe: " + d.isDisposed());
+                        //将Disposable添加进CompositeDisposable容器
+                        compositeDisposable.add(d);
                     }
 
                     @Override
                     public void onNext(List<PhotoArticleBean.Data> data) {
                         //多个对象时会多次调用
-                        view.onUpdateUI(data);
+                        getview().onUpdateUI(data);
                     }
 
                     @Override
                     public void onError(Throwable e) {
                         //e.printStackTrace();
-                        Log.e(TAG, "onError: " + e.getMessage());
-                        view.responsInfo("网络数据获取失败");
-                        view.loadingFinish();
+                        getview().responsInfo("网络数据获取失败");
+                        getview().loadingFinish();
                     }
 
                     @Override
                     public void onComplete() {
-                        view.loadingFinish();
+                        getview().loadingFinish();
                     }
                 });
     }

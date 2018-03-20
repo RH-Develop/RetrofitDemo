@@ -11,7 +11,7 @@ import java.util.List;
  */
 public interface IPhotoArticle {
 
-    interface View extends IBaseView<Presenter> {
+    interface View {
 
         void onUpdateUI(List<PhotoArticleBean.Data> list);
 

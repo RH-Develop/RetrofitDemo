@@ -1,8 +1,11 @@
 package com.example.retrofit.base;
 
 
+import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import com.example.retrofit.R;
 
@@ -10,12 +13,11 @@ import com.example.retrofit.R;
  * @author RH
  * @date 2018/3/5
  */
-public abstract class BaseListFragment<T> extends BaseFragment<T> implements SwipeRefreshLayout.OnRefreshListener{
+public abstract class BaseListFragment<T extends BasePresenter> extends BaseFragment<T> implements SwipeRefreshLayout.OnRefreshListener{
 
-
+    private static final String TAG = "BaseListFragment";
     protected RecyclerView recyclerView;
     protected SwipeRefreshLayout refreshLayout;
-
 
     @Override
     protected int attachLayoutId() {
